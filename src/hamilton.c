@@ -100,7 +100,9 @@ static char hamiltonianM(ParametersM* parameters) {
     parameters->visitedTable[current - OFFSET] = true;
     parameters->numVisited++;
     
-    int successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices];
+    int successor;
+    if(parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices + 3] != 0)successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices + 3];
+    else successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices];
     if(successor == OFFSET - 1)return false;
     
     int previous = OFFSET - 1;
@@ -116,13 +118,22 @@ static char hamiltonianM(ParametersM* parameters) {
             if(hamiltonianM(parameters)) return true;
             parameters->sp--;
         }
-        previous = successor;
-        successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
-    }
-    do {
 
+        previous = successor;
+        int cycleCheck = parameters->graphMatrix[current - OFFSET][successor - OFFSET] - 2 * parameters->numberOfVertices;
+        if(cycleCheck > 0 && !parameters->visitedTable[cycleCheck - OFFSET]) {
+            successor = cycleCheck;
+        }
+        else if(cycleCheck > 0 && parameters->visitedTable[cycleCheck - OFFSET]) {
+            for(int j = successor - OFFSET + 1; j < parameters->numberOfVertices; j++) {
+                if(parameters->graphMatrix[current - OFFSET][j] > 0) {
+                    successor = parameters->graphMatrix[current - OFFSET][j];
+                    break;
+                }
+            }
+        }
+        else successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
     }
-    while(parameters->graphMatrix[current - OFFSET][successor - OFFSET] != successor);
 
     parameters->visitedTable[current - OFFSET] = false;
     parameters->numVisited--;

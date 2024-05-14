@@ -220,7 +220,7 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
     for(int i = 0; i < n; i++) {
         int counter[4] = {1, 1, 1, 1};
         for(int j = 0; j < n; j++) {
-            if(matrix[i][j] > 0 && matrix[j][i] > 0)counter[3]++;
+            if(matrix[i][j] == matrix[j][i] && matrix[i][j] > 0)counter[3]++;
             else if(matrix[i][j] > 0)counter[0]++; //successor
             else if(matrix[i][j] < 0)counter[1]++; //predecessor
             else counter[2]++; //no incidence
