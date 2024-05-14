@@ -50,10 +50,21 @@ void printList(int** list, int h, char* separator);
 /**
  * @brief Dynamically creates a square matrix of bytes of given size.
  * 
- * @param size size of the matrix
- * @return pointer to the matrix
+ * @param h height of the matrix
+ * @param w width of the matrix
+ * @return pointer to copied matrix, NULL on memory allocation error
  */
-char** zeroMatrix(int size);
+char** zeroMatrix(int h, int w);
+
+/**
+ * @brief Copies a matrix of bytes.
+ * 
+ * @param matrix original matrix
+ * @param h height of the matrix
+ * @param w width of the matrix
+ * @return pointer to copied matrix, NULL on memory allocation error
+ */
+char** copyMatrix(char** matrix, int h, int w);
 
 /**
  * @brief Deallocates a dynamically created matrix of bytes of given height.

@@ -4,8 +4,9 @@
 #include <locale.h>
 #include <windows.h>
 
-#include "structs_unions_defines.h"
+#include "euler.h"
 #include "hamilton.h"
+#include "structs_unions_defines.h"
 #include "utils.h"
 
 #define nl() printf("\n") //Prints a new line
@@ -119,7 +120,7 @@ void fromFile() {
 
         switch(option) {
             case 'm': {
-                char** M = zeroMatrix(vertices);
+                char** M = zeroMatrix(vertices, vertices);
                 if(M == NULL) {
                     wprintf(L"Alokacja pamięci nie powiodła się.\n");
                     break;
@@ -139,7 +140,7 @@ void fromFile() {
             }
             case 'g': {
                 //TODO: do zmiany
-                char** M = zeroMatrix(vertices);
+                char** M = zeroMatrix(vertices, vertices);
                 if(M == NULL) {
                     wprintf(L"Alokacja pamięci nie powiodła się.\n");
                     break;
@@ -199,7 +200,7 @@ void fromKeyboard() {
             int n;
             scanf("%d", &n);
 
-            char** M = zeroMatrix(n);
+            char** M = zeroMatrix(n, n);
             if(M == NULL) {
                 wprintf(L"Alokacja pamięci nie powiodła się.\n");
                 break;
@@ -262,11 +263,11 @@ void mainPresenting() {
 
 void mainTesting() {
     // FILE* test = fopen("test.txt", "r");
-    FILE* test = fopen("t", "r");
+    /* FILE* test = fopen("t", "r");
     int n, m;
     fscanf(test, "%d %d", &n, &m);
 
-    char** M = zeroMatrix(n);
+    char** M = zeroMatrix(n, n);
     int x1, x2;
     while(fscanf(test, "%d %d", &x1, &x2) == 2) {                    
         M[x1 - OFFSET][x2 - OFFSET] = 1;
@@ -312,7 +313,39 @@ void mainTesting() {
     deallocMatrixInt(buf[0], n);
     deallocMatrixInt(buf[1], n);
     deallocMatrixInt(buf[2], n);
-    deallocMatrix(M, n);
+    deallocMatrix(M, n); */
+
+    FILE* test = fopen("t1", "r");
+    int n, m;
+    fscanf(test, "%d %d", &n, &m);
+
+    char** M = zeroMatrix(n, n);
+    int x1, x2;
+    while(fscanf(test, "%d %d", &x1, &x2) == 2) {                    
+        M[x1 - OFFSET][x2 - OFFSET] = 1;
+        M[x2 - OFFSET][x1 - OFFSET] = 1;
+    }
+    printMatrix(M, n, n);
+
+    int* euler = NULL;
+
+    status_t eulerianCircuit = EulerianCircuitA(M, n, m, 1, &euler);
+    switch(eulerianCircuit) {
+        case SUCCESS: {
+            printf("Cykl: ");
+            printArrayInt(euler, m + 1, " -> ");
+            free(euler);
+            break;
+        }
+        case FAILURE: {
+            wprintf(L"Graf wejściowy nie zawiera cyklu.\n");
+            break;
+        }
+        case MEMORY_FAILURE: {
+            wprintf(L"Alokacja pamięci nie powiodła się.\n");
+            break;
+        }
+    }
 
     return;
 }
