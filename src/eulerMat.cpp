@@ -14,8 +14,14 @@ GraphMat::~GraphMat()
 
 bool GraphMat::edgeExists(int i, int j)
 {
-    return  (mat[i][j] >= 0 && mat[i][j] <= size) ||
-            (mat[i][j] >= 2 * size + 1 && mat[i][j] <= 3 * size);
+    // return  (mat[i][j] >= 0 && mat[i][j] <= size) ||
+    //         (mat[i][j] >= 2 * size + 1 && mat[i][j] <= 3 * size);
+    return mat[i][j] >= 0 && mat[i][j] <= size;
+}
+
+bool GraphMat::edgeExistsBothWays(int i, int j)
+{
+    return (mat[i][j] >= 2 * size + 1 && mat[i][j] <= 3 * size);
 }
 
 void GraphMat::DFSUtil(int v, bool visited[])
@@ -32,7 +38,7 @@ void GraphMat::DFSUtil(int v, bool visited[])
 }
 
 // Sprawdza czy wszystkie nie zerowe wierzcholki sa polaczone
-bool GraphMat::isConnected()
+bool GraphMat::containsEulersCircuit()
 {
     bool* visited = new bool[size];
 
@@ -43,14 +49,31 @@ bool GraphMat::isConnected()
     int nonZero = size;
     for (int i = 0; i < size; i++)
     {
+        int inCount = 0;
+        int outCount = 0;
         for (int j = 0; j < size; j++)
         {
+            std::cout << i << " " << j << std::endl;
             if (edgeExists(i, j))
             {
-                nonZero = i;
-                break;
+                std::cout << "out\n";
+                if (!edgeExistsBothWays(i, j))
+                    outCount++;
+                if (nonZero == size)
+                    nonZero = i;
+            }
+
+            if (edgeExists(j, i))
+            {
+                std::cout << "in\n";
+                if (!edgeExistsBothWays(i, j))
+                    inCount++;
             }
         }
+
+        std::cout << "in: " << inCount << ", out: " << outCount << std::endl;
+        if (inCount != outCount)
+            return false;
     }
 
     // Jezeli nie ma krawedzi w grafie to zwracamy prawde
@@ -68,28 +91,6 @@ bool GraphMat::isConnected()
 
     delete[] visited;
     return true;
-}
-
-bool GraphMat::containsEulersCircuit()
-{
-    if (isConnected() == false)
-        return 0;
-
-    // Liczymy nieparzyste
-    int odd = 0;
-    for (int i = 0; i < size; i++)
-    {
-        int count = 0;
-        for (int j = 0; j < size; j++)
-        {
-            if (edgeExists(i, j))
-                count++;
-        }
-        if (count % 2 == 1)
-            odd++;
-    }
-
-    return (odd == 0);
 }
 
 void GraphMat::printEulerTour()
@@ -132,10 +133,10 @@ void GraphMat::printEulerUtil(int u)
             continue;
 
         // Sprawdzamy czy krawedz nie zostla usunieta i czy powinna zostac wybrana ponad inne
-        if (adj[u][i] != -1 && isValidNextEdge(u, i))
+        if (isValidNextEdge(u, i))
         {
             std::cout << u << "  ";
-            rmvEdge(u, i);
+            mat[u][i] = -2 * size;
             printEulerUtil(i);
         }
     }
@@ -161,11 +162,12 @@ bool GraphMat::isValidNextEdge(int u, int v)
     int count1 = DFSCount(u, visited);
 
     // i po jej usunieciu
-    rmvEdge(u, v);
+    int val = mat[u][v];
+    mat[u][v] = -2 * size;
     memset(visited, false, size);
     int count2 = DFSCount(u, visited);
 
-    AddEdge(u, v);
+    mat[u][v] = val;
     delete[] visited;
 
     return (count1 > count2) ? false : true;

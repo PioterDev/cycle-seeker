@@ -29,4 +29,5 @@ struct GraphMat {
     bool isConnected();
     void DFSUtil(int v, bool visited[]);
     bool edgeExists(int i, int j);
+    bool edgeExistsBothWays(int i, int j);
 };

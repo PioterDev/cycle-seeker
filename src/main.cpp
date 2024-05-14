@@ -87,7 +87,8 @@ void cycleGraphMatrix(int** matrix, int n) {
             break;
         }
         case 'e': {
-            printf("Chilowo nie ma.\n");
+            GraphMat graph(matrix, n);
+            graph.printEulerTour();
             break;
         }
     }
