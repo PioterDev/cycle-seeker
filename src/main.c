@@ -211,7 +211,6 @@ void fromKeyboard() {
                 wprintf(L"Podaj #%d krawędź (x y): ", ++i);
                 int x1, x2;
                 scanf("%d %d", &x1, &x2);
-                //printf("%d %d\n", x1 - 1, x2 - 1);
                 if(x1 == OFFSET -1 && x2 == OFFSET - 1)break;
                 M[x1 - OFFSET][x2 - OFFSET] = 1;
                 M[x2 - OFFSET][x1 - OFFSET] = 1;
@@ -219,10 +218,55 @@ void fromKeyboard() {
             printMatrix(M, n, n);
 
             cycleAdjacencyMatrix(M, n);
+
+            deallocMatrix(M, n);
+
             break;
         }
         case 'g': {
-            printf("Chwilowo nie ma.\n");
+            wprintf(L"Podaj liczbę wierzchołków: ");
+            int n;
+            scanf("%d", &n);
+
+            char** M = zeroMatrix(n, n);
+            if(M == NULL) {
+                wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                break;
+            }
+            wprintf(L"Aby zakończyć wczytywanie, jako krawędź należy podać '%d %d'\n", OFFSET-  1, OFFSET - 1);
+            int i = 0;
+            while(true) {
+                wprintf(L"Podaj #%d łuk (x y): ", ++i);
+                int x1, x2;
+                scanf("%d %d", &x1, &x2);
+                if(x1 == OFFSET -1 && x2 == OFFSET - 1)break;
+                M[x1 - OFFSET][x2 - OFFSET] = 1;
+                M[x2 - OFFSET][x1 - OFFSET] = -1;
+            }
+
+            int** buf[3];
+            if(matrixToLists(M, n, buf) == MEMORY_FAILURE) {
+                deallocMatrix(M, n);
+                wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                break;
+            };
+
+            int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2]);
+            deallocMatrixInt(buf[0], n);
+            deallocMatrixInt(buf[1], n);
+            deallocMatrixInt(buf[2], n);
+            deallocMatrix(M, n);
+            if(grM == NULL) {
+                wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                break;
+            }
+
+            printMatrixInt(grM, n, n + 4, 2, " ");
+
+            cycleGraphMatrix(grM, n);
+
+            deallocMatrixInt(grM, n);
+
             break;
         }
         default: 
