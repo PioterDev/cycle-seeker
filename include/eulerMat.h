@@ -5,10 +5,9 @@
 #include <vector>
 
 struct GraphMat {
-    std::vector<std::vector<int> > adj;
-    std::vector<std::vector<int> > graphMat;
+    int** mat;
     int size;
-    GraphMat(int num);
+    GraphMat(int** mat, int num);
     void AddEdge(int v, int w);
     void PrintMat();
     int GetSize();
@@ -29,4 +28,5 @@ struct GraphMat {
     bool containsEulersCircuit();
     bool isConnected();
     void DFSUtil(int v, bool visited[]);
+    bool edgeExists(int i, int j);
 };

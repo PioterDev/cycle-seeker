@@ -1,21 +1,21 @@
 #include "../include/eulerMat.h"
 
-GraphMat::GraphMat(int num) : size(num)
+GraphMat::GraphMat(int** mat, int num) : mat(mat), size(num)
 {
-    for (int i = 0; i < num; i++)
-    {
-        std::vector<int> new_vec;
-        adj.push_back(new_vec);
-    }
 }
 
 void GraphMat::AddEdge(int v, int w)
 {
-    adj[v].push_back(w);
 }
 
 GraphMat::~GraphMat()
 {
+}
+
+bool GraphMat::edgeExists(int i, int j)
+{
+    return  (mat[i][j] >= 0 && mat[i][j] <= size) ||
+            (mat[i][j] >= 2 * size + 1 && mat[i][j] <= 3 * size);
 }
 
 void GraphMat::DFSUtil(int v, bool visited[])
@@ -24,7 +24,9 @@ void GraphMat::DFSUtil(int v, bool visited[])
  
     for (int i = 0; i < size; i++)
     {
-        if (adj[v][i] == 1 && !visited[i])
+        if (visited[i])
+            continue;
+        if (edgeExists(v, i))
             DFSUtil(i, visited);
     }
 }
@@ -43,7 +45,7 @@ bool GraphMat::isConnected()
     {
         for (int j = 0; j < size; j++)
         {
-            if (adj[i][j] == 1)
+            if (edgeExists(i, j))
             {
                 nonZero = i;
                 break;
@@ -61,7 +63,7 @@ bool GraphMat::isConnected()
     // Sprawdzamy czy wszystkie niezerowe wierzcholki zostaly odwiedzone
     for (int i = 0; i < size; i++)
         for (int j = 0; j < size; j++)
-            if (adj[i][j] == 1 && !visited[i])
+            if (edgeExists(i, j) && !visited[i])
                 return false;
 
     delete[] visited;
@@ -80,7 +82,7 @@ bool GraphMat::containsEulersCircuit()
         int count = 0;
         for (int j = 0; j < size; j++)
         {
-            if (adj[i][j] == 1)
+            if (edgeExists(i, j))
                 count++;
         }
         if (count % 2 == 1)
@@ -106,7 +108,7 @@ void GraphMat::printEulerTour()
         int connectionCount = 0;
         for (int j = 0; j < size; j++)
         {
-            if (adj[i][j] == 1)
+            if (edgeExists(i, j))
                 connectionCount++;
         }
 
@@ -126,7 +128,7 @@ void GraphMat::printEulerUtil(int u)
     // Wykonaj dla wszystkich wierzcholkow sasiadujacych
     for (int i = 0; i < size; i++)
     {
-        if (adj[u][i] != 1)
+        if (!edgeExists(u, i))
             continue;
 
         // Sprawdzamy czy krawedz nie zostla usunieta i czy powinna zostac wybrana ponad inne
@@ -146,7 +148,7 @@ bool GraphMat::isValidNextEdge(int u, int v)
     // Wybieramy go jeżeli jest jedynym wierzcholkiem
     int connectionCount = 0;
     for (int i = 0; i < size; i++)
-        if (adj[u][i] == 1)
+        if (edgeExists(u, i))
             connectionCount++;
     if (connectionCount == 1)
         return true;
@@ -169,13 +171,6 @@ bool GraphMat::isValidNextEdge(int u, int v)
     return (count1 > count2) ? false : true;
 }
 
-// Usuniecie krawedzi (zamiana z 1 na -1)
-void GraphMat::rmvEdge(int u, int v)
-{
-    adj[u][v] = -1;
-    adj[v][u] = -1;
-}
-
 // Funkcja liczy ilosc wierzcholkow do ktorych da sie dotrzec z danego wierzcholka
 int GraphMat::DFSCount(int v, bool visited[])
 {
@@ -184,7 +179,7 @@ int GraphMat::DFSCount(int v, bool visited[])
 
     int connectionCount = 0;
     for (int i = 0; i < size; i++)
-        if (adj[v][i] == 1 && !visited[i])
+        if (edgeExists(v, i) && !visited[i])
             count += DFSCount(i, visited);
 
     return count;
