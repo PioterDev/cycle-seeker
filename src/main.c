@@ -152,17 +152,18 @@ void fromFile() {
                     M[x2 - OFFSET][x1 - OFFSET] = -1;
                 }
 
-                int** buf[3];
+                int** buf[4];
                 if(matrixToLists(M, vertices, buf) == MEMORY_FAILURE) {
                     deallocMatrix(M, vertices);
                     wprintf(L"Alokacja pamięci nie powiodła się.\n");
                     break;
                 };
 
-                int** grM = graphMatrixFrom(vertices, buf[0], buf[1], buf[2]);
+                int** grM = graphMatrixFrom(vertices, buf[0], buf[1], buf[2], buf[3]);
                 deallocMatrixInt(buf[0], vertices);
                 deallocMatrixInt(buf[1], vertices);
                 deallocMatrixInt(buf[2], vertices);
+                deallocMatrixInt(buf[3], vertices);
                 deallocMatrix(M, vertices);
                 if(grM == NULL) {
                     wprintf(L"Alokacja pamięci nie powiodła się.\n");
@@ -244,17 +245,18 @@ void fromKeyboard() {
                 M[x2 - OFFSET][x1 - OFFSET] = -1;
             }
 
-            int** buf[3];
+            int** buf[4];
             if(matrixToLists(M, n, buf) == MEMORY_FAILURE) {
                 deallocMatrix(M, n);
                 wprintf(L"Alokacja pamięci nie powiodła się.\n");
                 break;
             };
 
-            int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2]);
+            int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
             deallocMatrixInt(buf[0], n);
             deallocMatrixInt(buf[1], n);
             deallocMatrixInt(buf[2], n);
+            deallocMatrixInt(buf[3], n);
             deallocMatrix(M, n);
             if(grM == NULL) {
                 wprintf(L"Alokacja pamięci nie powiodła się.\n");
@@ -307,19 +309,27 @@ void mainPresenting() {
 
 void mainTesting() {
     // FILE* test = fopen("test.txt", "r");
-    /* FILE* test = fopen("t", "r");
+    FILE* test = fopen("t", "r");
     int n, m;
     fscanf(test, "%d %d", &n, &m);
 
     char** M = zeroMatrix(n, n);
     int x1, x2;
-    while(fscanf(test, "%d %d", &x1, &x2) == 2) {                    
-        M[x1 - OFFSET][x2 - OFFSET] = 1;
-        M[x2 - OFFSET][x1 - OFFSET] = -1;
+    while(fscanf(test, "%d %d", &x1, &x2) == 2) {
+        if(x1 == x2) {
+            M[x1 - OFFSET][x2 - OFFSET]++;
+            continue;
+        }
+        else if(M[x2 - OFFSET][x1 - OFFSET] > 0) {
+            M[x1 - OFFSET][x2 - OFFSET] = M[x2 - OFFSET][x1 - OFFSET];
+            continue;
+        }
+        M[x1 - OFFSET][x2 - OFFSET]++;
+        M[x2 - OFFSET][x1 - OFFSET]--;
     }
     printMatrix(M, n, n);
 
-    int** buf[3];
+    int** buf[4];
     matrixToLists(M, n, buf);
 
     printList(buf[0], n, "->");
@@ -327,8 +337,12 @@ void mainTesting() {
     printList(buf[1], n, "->");
     nl();
     printList(buf[2], n, "->");
+    nl();
+    printList(buf[3], n, "->");
 
-    int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2]);
+    printf("Before\n");
+    int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
+    printf("After\n");
 
     printMatrixInt(grM, n, n + 4, 2, " ");
 
@@ -357,9 +371,10 @@ void mainTesting() {
     deallocMatrixInt(buf[0], n);
     deallocMatrixInt(buf[1], n);
     deallocMatrixInt(buf[2], n);
-    deallocMatrix(M, n); */
+    deallocMatrixInt(buf[3], n);
+    deallocMatrix(M, n);
 
-    FILE* test = fopen("t1", "r");
+    /* FILE* test = fopen("t1", "r");
     int n, m;
     fscanf(test, "%d %d", &n, &m);
 
@@ -389,7 +404,7 @@ void mainTesting() {
             wprintf(L"Alokacja pamięci nie powiodła się.\n");
             break;
         }
-    }
+    } */
 
     return;
 }

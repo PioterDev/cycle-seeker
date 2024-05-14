@@ -200,25 +200,28 @@ int** matrixToNoIncidenceList(char** matrix, int n) {
 
 status_t matrixToLists(char** matrix, int n, int*** buf) {
     int** successorList = malloc(sizeof(int*) * n);
-    if(successorList == NULL)return MEMORY_FAILURE;
+    if(successorList == NULL)goto failure;
 
     int** predecessorList = malloc(sizeof(int*) * n);
     if(predecessorList == NULL) {
-        free(successorList);
-        return MEMORY_FAILURE;
+        goto failure_s;
     }
 
     int** noIncidenceList = malloc(sizeof(int*) * n);
     if(noIncidenceList == NULL) {
-        free(successorList);
-        free(predecessorList);
-        return MEMORY_FAILURE;
+        goto failure_p;
+    }
+
+    int** cycleList = malloc(sizeof(int*) * n);
+    if(cycleList == NULL) {
+        goto failure_n;
     }
 
     for(int i = 0; i < n; i++) {
-        int counter[3] = {1, 1, 1};
+        int counter[4] = {1, 1, 1, 1};
         for(int j = 0; j < n; j++) {
-            if(matrix[i][j] > 0)counter[0]++; //successor
+            if(matrix[i][j] > 0 && matrix[j][i] > 0)counter[3]++;
+            else if(matrix[i][j] > 0)counter[0]++; //successor
             else if(matrix[i][j] < 0)counter[1]++; //predecessor
             else counter[2]++; //no incidence
         }
@@ -229,11 +232,10 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
                 free(successorList[k]);
                 free(predecessorList[k]);
                 free(noIncidenceList[k]);
+                free(cycleList[k]);
             }
-            free(successorList);
-            free(predecessorList);
-            free(noIncidenceList);
-            return MEMORY_FAILURE;
+
+            goto failure_c;
         }
         
         predecessorList[i] = calloc(counter[1], sizeof(int));
@@ -242,12 +244,11 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
                 free(successorList[k]);
                 free(predecessorList[k]);
                 free(noIncidenceList[k]);
+                free(cycleList[k]);
             }
             free(successorList[i]);
-            free(successorList);
-            free(predecessorList);
-            free(noIncidenceList);
-            return MEMORY_FAILURE;
+
+            goto failure_c;
         }
         
         noIncidenceList[i] = calloc(counter[2], sizeof(int));
@@ -256,22 +257,38 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
                 free(successorList[k]);
                 free(predecessorList[k]);
                 free(noIncidenceList[k]);
+                free(cycleList[k]);
             }
             free(successorList[i]);
-            free(successorList);
             free(predecessorList[i]);
-            free(predecessorList);
-            free(noIncidenceList);
-            return MEMORY_FAILURE;
+            
+            goto failure_c;
+        }
+
+        cycleList[i] = calloc(counter[3], sizeof(int));
+        if(cycleList[i] == NULL) {
+            for(int k = 0; k < i; k++) {
+                free(successorList[k]);
+                free(predecessorList[k]);
+                free(noIncidenceList[k]);
+                free(cycleList[k]);
+            }
+            free(successorList[i]);
+            free(predecessorList[i]);
+            free(noIncidenceList[i]);
+
+            goto failure_c;
         }
 
         successorList[i][counter[0] - 1] = OFFSET - 1;
         predecessorList[i][counter[1] - 1] = OFFSET - 1;
         noIncidenceList[i][counter[2] - 1] = OFFSET - 1;
+        cycleList[i][counter[3] - 1] = OFFSET - 1;
 
-        int iterator[3] = {0};
+        int iterator[4] = {0};
         for(int j = 0; j < n; j++) {
-            if(matrix[i][j] > 0)successorList[i][iterator[0]++] = j + OFFSET; //successor
+            if(matrix[i][j] > 0 && matrix[j][i] > 0)cycleList[i][iterator[3]++] = j + OFFSET;
+            else if(matrix[i][j] > 0)successorList[i][iterator[0]++] = j + OFFSET; //successor
             else if(matrix[i][j] < 0)predecessorList[i][iterator[1]++] = j + OFFSET; //predecessor
             else noIncidenceList[i][iterator[2]++] = j + OFFSET; //no incidence
         }
@@ -280,11 +297,23 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
     buf[0] = successorList;
     buf[1] = predecessorList;
     buf[2] = noIncidenceList;
+    buf[3] = cycleList;
 
     return SUCCESS;
+
+    failure_c:
+        free(cycleList);
+    failure_n:
+        free(noIncidenceList);
+    failure_p:
+        free(predecessorList);
+    failure_s:
+        free(successorList);
+    failure:
+        return MEMORY_FAILURE;
 }
 
-int** graphMatrixFrom(int n, int** successorList, int** predecessorList, int** noIncidenceList) {
+int** graphMatrixFrom(int n, int** successorList, int** predecessorList, int** noIncidenceList, int** cycleList) {
     int** M = malloc(sizeof(int*) * n);
     if(M == NULL)return NULL;
     for(int i = 0; i < n; i++) {
@@ -350,6 +379,25 @@ int** graphMatrixFrom(int n, int** successorList, int** predecessorList, int** n
             }
             else {
                 M[i][noIncidenceList[i][j] - OFFSET] = -1 * noIncidenceList[i][j + 1];
+            }
+            j++;
+        }
+    }
+
+    //Krok #4
+    for(int i = 0; i < n; i++) {
+        if(cycleList[i][0] == OFFSET - 1)M[i][n + 3] = OFFSET - 1; //nie ma cyklu
+        else M[i][n + 3] = cycleList[i][0];
+    }
+    for(int i = 0; i < n; i++) {
+        int j = 0;
+        while(cycleList[i][j] != OFFSET - 1) {
+            if(cycleList[i][j + 1] == OFFSET - 1) {
+                M[i][cycleList[i][j] - OFFSET] = 2 * n + cycleList[i][j];
+                break;
+            }
+            else {
+                M[i][cycleList[i][j] - OFFSET] = 2 * n + cycleList[i][j + 1];
             }
             j++;
         }

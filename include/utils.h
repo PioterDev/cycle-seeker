@@ -115,7 +115,7 @@ int** matrixToNoIncidenceList(char** matrix, int n);
  * 
  * @param matrix matrix
  * @param n number of vertices
- * @param buf array of size at least 3 of pointers to pointers
+ * @param buf array of size at least 4 of pointers to pointers
  * @return status_t 
  */
 status_t matrixToLists(char** matrix, int n, int*** buf);
@@ -127,9 +127,10 @@ status_t matrixToLists(char** matrix, int n, int*** buf);
  * @param successorList successor list
  * @param predecessorList predecessor list
  * @param noIncidenceList no-incidence list
+ * @param cycleList cycle list (holds simple cycles of length 1 and 2)
  * @return pointer to the matrix, NULL on memory allocation error
  */
-int** graphMatrixFrom(int n, int** successorList, int** predecessorList, int** noIncidenceList);
+int** graphMatrixFrom(int n, int** successorList, int** predecessorList, int** noIncidenceList, int** cycleList);
 
 
 #endif
