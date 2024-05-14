@@ -63,11 +63,11 @@ void printList(int** list, int h, char* separator) {
     }
 }
 
-char** zeroMatrix(int n) {
-    char** matrix = malloc(sizeof(char*) * n);
+char** zeroMatrix(int h, int w) {
+    char** matrix = malloc(sizeof(char*) * h);
     if(matrix == NULL)return NULL;
-    for(int i = 0; i < n; i++) {
-        matrix[i] = calloc(n, sizeof(char));
+    for(int i = 0; i < h; i++) {
+        matrix[i] = calloc(w, sizeof(char));
         if(matrix[i] == NULL) {
             for(int j = 0; j < i; j++) {
                 free(matrix[j]);
@@ -77,6 +77,27 @@ char** zeroMatrix(int n) {
         }
     }
     return matrix;
+}
+
+char** copyMatrix(char** matrix, int h, int w) {
+    char** M = malloc(sizeof(char*) * h);
+    if(M == NULL)return NULL;
+    
+    for(int i = 0; i < h; i++) {
+        M[i] = malloc(w);
+        if(M[i] == NULL) {
+            for(int j = 0; j < i; j++) {
+                free(M[j]);
+            }
+            free(M);
+            return NULL;
+        }
+        for(int j = 0; j < w; j++) {
+            M[i][j] = matrix[i][j];
+        }
+    }
+
+    return M;
 }
 
 void deallocMatrix(char** matrix, int h) {
