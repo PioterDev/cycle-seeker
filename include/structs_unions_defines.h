@@ -1,7 +1,8 @@
 #ifndef STRUCTS_UNIONS_H
 #define STRUCTS_UNIONS_H
 
-#define OFFSET 1
+//#define OFFSET 1
+#define OFFSET 0
 #define true 1
 #define false 0
 

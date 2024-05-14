@@ -5,13 +5,15 @@
 #include <windows.h>
 
 #include "euler.h"
+#include "eulerAdj.h"
+#include "eulerMat.h"
 #include "hamilton.h"
 #include "structs_unions_defines.h"
 #include "utils.h"
 
 #define nl() printf("\n") //Prints a new line
 
-void cycleAdjacencyMatrix(char** matrix, int n) {
+void cycleAdjacencyMatrix(char** matrix, GraphAdj graph, int n) {
     wprintf(L"Wybierz poszukiwany cykl.\n\n");
     wprintf(L"Dla Hamiltona, wpisz 'h'\n");
     wprintf(L"Dla Eulera, wpisz 'e'\n");
@@ -45,7 +47,7 @@ void cycleAdjacencyMatrix(char** matrix, int n) {
             break;
         }
         case 'e': {
-            printf("Chilowo nie ma.\n");
+            graph.printEulerTour();
             break;
         }
     }
@@ -120,6 +122,7 @@ void fromFile() {
 
         switch(option) {
             case 'm': {
+                GraphAdj graph(vertices);
                 char** M = zeroMatrix(vertices, vertices);
                 if(M == NULL) {
                     wprintf(L"Alokacja pamięci nie powiodła się.\n");
@@ -130,10 +133,10 @@ void fromFile() {
                 while(fscanf(file, "%d %d", &x1, &x2) == 2) {                    
                     M[x1 - OFFSET][x2 - OFFSET] = 1;
                     M[x2 - OFFSET][x1 - OFFSET] = 1;
+                    graph.AddEdge(x1 - OFFSET, x2 - OFFSET);
                 }
                 printMatrix(M, vertices, vertices);
-
-                cycleAdjacencyMatrix(M, vertices);
+                cycleAdjacencyMatrix(M, graph, vertices);
 
                 deallocMatrix(M, vertices);
                 break;
@@ -199,6 +202,7 @@ void fromKeyboard() {
             wprintf(L"Podaj liczbę wierzchołków: ");
             int n;
             scanf("%d", &n);
+            GraphAdj graph(n);
 
             char** M = zeroMatrix(n, n);
             if(M == NULL) {
@@ -215,14 +219,57 @@ void fromKeyboard() {
                 if(x1 == OFFSET -1 && x2 == OFFSET - 1)break;
                 M[x1 - OFFSET][x2 - OFFSET] = 1;
                 M[x2 - OFFSET][x1 - OFFSET] = 1;
+                graph.AddEdge(x1 - OFFSET, x2 - OFFSET);
             }
             printMatrix(M, n, n);
 
-            cycleAdjacencyMatrix(M, n);
+            cycleAdjacencyMatrix(M, graph, n);
             break;
         }
         case 'g': {
-            printf("Chwilowo nie ma.\n");
+            wprintf(L"Podaj liczbę wierzchołków: ");
+            int n;
+            scanf("%d", &n);
+
+            char** M = zeroMatrix(n, n);
+            if(M == NULL) {
+                wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                break;
+            }
+            wprintf(L"Aby zakończyć wczytywanie, jako krawędź należy podać '%d %d'\n", OFFSET-  1, OFFSET - 1);
+            int i = 0;
+            while(true) {
+                wprintf(L"Podaj #%d łuk (x y): ", ++i);
+                int x1, x2;
+                scanf("%d %d", &x1, &x2);
+                if(x1 == OFFSET -1 && x2 == OFFSET - 1)break;
+                M[x1 - OFFSET][x2 - OFFSET] = 1;
+                M[x2 - OFFSET][x1 - OFFSET] = -1;
+            }
+
+            int** buf[3];
+            if(matrixToLists(M, n, buf) == MEMORY_FAILURE) {
+                deallocMatrix(M, n);
+                wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                break;
+            };
+
+            int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2]);
+            deallocMatrixInt(buf[0], n);
+            deallocMatrixInt(buf[1], n);
+            deallocMatrixInt(buf[2], n);
+            deallocMatrix(M, n);
+            if(grM == NULL) {
+                wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                break;
+            }
+
+            printMatrixInt(grM, n, n + 4, 2, " ");
+
+            cycleGraphMatrix(grM, n);
+
+            deallocMatrixInt(grM, n);
+
             break;
         }
         default: 
