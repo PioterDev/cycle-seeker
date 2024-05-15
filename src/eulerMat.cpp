@@ -53,10 +53,10 @@ bool GraphMat::containsEulersCircuit()
         int outCount = 0;
         for (int j = 0; j < size; j++)
         {
-            std::cout << i << " " << j << std::endl;
+            // std::cout << i << " " << j << std::endl;
             if (edgeExists(i, j))
             {
-                std::cout << "out\n";
+                // std::cout << "out\n";
                 if (!edgeExistsBothWays(i, j))
                     outCount++;
                 if (nonZero == size)
@@ -65,13 +65,13 @@ bool GraphMat::containsEulersCircuit()
 
             if (edgeExists(j, i))
             {
-                std::cout << "in\n";
+                // std::cout << "in\n";
                 if (!edgeExistsBothWays(i, j))
                     inCount++;
             }
         }
 
-        std::cout << "in: " << inCount << ", out: " << outCount << std::endl;
+        // std::cout << "in: " << inCount << ", out: " << outCount << std::endl;
         if (inCount != outCount)
             return false;
     }
@@ -99,7 +99,7 @@ void GraphMat::printEulerTour()
     if (!containsEulersCircuit())
     {
         std::cout << "Graf nie zawiera cyklu eulera" << std::endl;
-        // return;
+        return;
     }
 
     // Szukanie wierzcholka o nieparzystym stopniu, a jak nie ma to zerowy dajemy
