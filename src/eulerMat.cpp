@@ -99,7 +99,7 @@ void GraphMat::printEulerTour()
     if (!containsEulersCircuit())
     {
         std::cout << "Graf nie zawiera cyklu eulera" << std::endl;
-        return;
+        // return;
     }
 
     // Szukanie wierzcholka o nieparzystym stopniu, a jak nie ma to zerowy dajemy
