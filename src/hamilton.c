@@ -15,32 +15,30 @@ typedef struct ParamsA {
     int sp;
 } ParametersA;
 
-static char hamiltonianA(ParametersA* parameters) {
-    int current = parameters->current;
-    parameters->visitedTable[current - OFFSET] = true;
-    parameters->numVisited++;
+char hamiltonianA(char** adjacencyMatrix, char* visitedTable, int* path, const int numberOfVertices, const int start, int current, int numVisited, int sp) {
+    visitedTable[current - OFFSET] = true;
+    numVisited++;
     
-    for(int j = 0; j < parameters->numberOfVertices; j++) {
-        if(parameters->adjacencyMatrix[current - OFFSET][j] == true) {
-            if(j + OFFSET == parameters->start && parameters->numVisited == parameters->numberOfVertices) {
-                parameters->path[parameters->sp] = parameters->start;
+    for(int j = 0; j < numberOfVertices; j++) {
+        if(adjacencyMatrix[current - OFFSET][j] == true) {
+            if(j + OFFSET == start && numVisited == numberOfVertices) {
+                path[sp] = start;
                 return true;
             }
-            if(parameters->visitedTable[j] == false) {
-                parameters->current = j + OFFSET;
-                parameters->path[parameters->sp] = j + OFFSET;
-                parameters->sp++;
-                if(hamiltonianA(parameters)) {
+            if(visitedTable[j] == false) {
+                current = j + OFFSET;
+                path[sp] = j + OFFSET;
+                sp++;
+                if(hamiltonianA(adjacencyMatrix, visitedTable, path, numberOfVertices, start, current, numVisited, sp)) {
                     return true;
                 }
-                parameters->sp--;
+                sp--;
             }
         }
     }
 
-    parameters->visitedTable[current - OFFSET] = false;
-    parameters->numVisited--;
-    parameters->current = current;
+    visitedTable[current - OFFSET] = false;
+    numVisited--;
     return false;
 }
 
@@ -56,18 +54,9 @@ status_t HamiltonianCycleA(char** adjM, int n, int start, int** placeholder) {
 
     stack[0] = start;
     
-    ParametersA params = {
-        adjM,
-        visited,
-        stack,
-        n,
-        start,
-        start,
-        0,
-        1
-    };
 
-    char cycle = hamiltonianA(&params);
+
+    char cycle = hamiltonianA(adjM, visited, stack, n, start, start, 0, 1);
     free(visited);
     if(!cycle) {
         free(stack);
@@ -95,7 +84,7 @@ typedef struct ParamsM {
     int sp;
 } ParametersM;
 
-static char hamiltonianM(ParametersM* parameters) {
+char hamiltonianM(ParametersM* parameters) {
     int current = parameters->current;
     parameters->visitedTable[current - OFFSET] = true;
     parameters->numVisited++;
@@ -108,7 +97,25 @@ static char hamiltonianM(ParametersM* parameters) {
     if(successor == OFFSET - 1)return false; //no successor
     
     int previous = OFFSET - 1;
-    while(previous != successor) {
+
+    for(int i = 0; i < parameters->numberOfVertices; i++) {
+        if(successor == parameters->start && parameters->numVisited == parameters->numberOfVertices) {
+            parameters->path[parameters->sp] = parameters->start;
+            return true;
+        }
+        if(!parameters->visitedTable[successor - OFFSET]) {
+            parameters->current = successor;
+            parameters->path[parameters->sp] = successor;
+            parameters->sp++;
+            if(hamiltonianM(parameters)) return true;
+            parameters->sp--;
+        }
+
+        previous = successor;
+        successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
+        if(previous == successor)break;
+    }
+    /* while(previous != successor) {
         if(successor == parameters->start && parameters->numVisited == parameters->numberOfVertices) {
             parameters->path[parameters->sp] = parameters->start;
             return true;
@@ -135,7 +142,7 @@ static char hamiltonianM(ParametersM* parameters) {
             }
         }
         else successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
-    }
+    } */
 
     parameters->visitedTable[current - OFFSET] = false;
     parameters->numVisited--;

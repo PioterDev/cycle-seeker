@@ -11,5 +11,13 @@ typedef enum status_t {
     MEMORY_FAILURE
 } status_t;
 
+typedef struct Params {
+    FILE* file;
+    char** adjM;
+    int** grM;
+    int n;
+    int percentageFull;
+} Params;
+
 
 #endif

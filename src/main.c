@@ -3,10 +3,13 @@
 #include <string.h>
 #include <locale.h>
 #include <windows.h>
+#include <time.h>
 
 #include "euler.h"
 #include "hamilton.h"
+#include "rng.h"
 #include "structs_unions_defines.h"
+#include "tester.h"
 #include "utils.h"
 
 #define nl() printf("\n") //Prints a new line
@@ -191,7 +194,7 @@ void fromFile() {
                     M[x1 - OFFSET][x2 - OFFSET] = 1;
                     M[x2 - OFFSET][x1 - OFFSET] = -1;
                 }
-                printMatrix(M, vertices, vertices);
+                // printMatrix(M, vertices, vertices);
 
                 int** buf[4];
                 if(matrixToLists(M, vertices, buf) == MEMORY_FAILURE) {
@@ -354,105 +357,46 @@ void mainPresenting() {
 }
 
 void mainTesting() {
-    // FILE* test = fopen("test.txt", "r");
-    FILE* test = fopen("t", "r");
-    int n, m;
-    fscanf(test, "%d %d", &n, &m);
+    FILE* testF = fopen("./tests.csv", "a");
+    int n = 20;
+    while(n <= 10000) {
+        printf("n: %d\n", n);
+        for(int i = 0; i < 5; i++) {
+            int* S = sequence(n);
+            int* P = permute(S, n);
+            free(S);
+            printArrayInt(P, n, " -> ");
+            printf("Iteracja #%d: ", i + 1);
+            for(int j = 0; j < 9; j++) {
+                printf("%d%% ", 10 * j + 10);
+                char** M = zeroMatrix(n, n);
+                
+                genHamiltonianD(M, n, 10 * j + 10, P);
 
-    char** M = zeroMatrix(n, n);
-    int x1, x2;
-    while(fscanf(test, "%d %d", &x1, &x2) == 2) {
-        if(x1 == x2) {
-            M[x1 - OFFSET][x2 - OFFSET]++;
-            continue;
-        }
-        else if(M[x2 - OFFSET][x1 - OFFSET] > 0) {
-            M[x1 - OFFSET][x2 - OFFSET] = M[x2 - OFFSET][x1 - OFFSET];
-            continue;
-        }
-        M[x1 - OFFSET][x2 - OFFSET]++;
-        M[x2 - OFFSET][x1 - OFFSET]--;
-    }
-    printMatrix(M, n, n);
+                int** buf[4];
+                matrixToLists(M, n, buf);
 
-    int** buf[4];
-    matrixToLists(M, n, buf);
+                int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
+                
+                deallocMatrixInt(buf[0], n);
+                deallocMatrixInt(buf[1], n);
+                deallocMatrixInt(buf[2], n);
+                deallocMatrixInt(buf[3], n);
 
-    printList(buf[0], n, "->");
-    nl();
-    printList(buf[1], n, "->");
-    nl();
-    printList(buf[2], n, "->");
-    nl();
-    printList(buf[3], n, "->");
+                // printMatrixInt(grM, n, n + 4, 3, " ");
 
-    printf("Before\n");
-    int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
-    printf("After\n");
+                fprintf(testF, "H;%d;%d;%lld;%lld\n", n, 10 * j + 10, test('h', M, NULL, n), test('h', NULL, grM, n));
 
-    printMatrixInt(grM, n, n + 4, 2, " ");
-
-    int* cycle = NULL;
-    status_t hamiltonian = HamiltonianCycleM(grM, n, 1, &cycle);
-    switch(hamiltonian) {
-        case SUCCESS: {
-            if(cycle != NULL) {
-                wprintf(L"Cykl: ");
-                printArrayInt(cycle, n + 1, " -> ");
-                free(cycle);
+                deallocMatrix(M, n);
+                deallocMatrixInt(grM, n);
             }
-            break;
+            printf("\n");
+            free(P);
         }
-        case FAILURE: {
-            wprintf(L"Graf wejściowy nie zawiera cyklu.\n");
-            break;
-        }
-        case MEMORY_FAILURE: {
-            wprintf(L"Alokacja pamięci nie powiodła się.\n");
-            break;
-        }
+
+        n += 10;
     }
-
-    deallocMatrixInt(grM, n);
-    deallocMatrixInt(buf[0], n);
-    deallocMatrixInt(buf[1], n);
-    deallocMatrixInt(buf[2], n);
-    deallocMatrixInt(buf[3], n);
-    deallocMatrix(M, n);
-
-    /* FILE* test = fopen("t1", "r");
-    int n, m;
-    fscanf(test, "%d %d", &n, &m);
-
-    char** M = zeroMatrix(n, n);
-    int x1, x2;
-    while(fscanf(test, "%d %d", &x1, &x2) == 2) {                    
-        M[x1 - OFFSET][x2 - OFFSET] = 1;
-        M[x2 - OFFSET][x1 - OFFSET] = 1;
-    }
-    printMatrix(M, n, n);
-
-    int* euler = NULL;
-
-    status_t eulerianCircuit = EulerianCircuitA(M, n, m, 1, &euler);
-    switch(eulerianCircuit) {
-        case SUCCESS: {
-            printf("Cykl: ");
-            printArrayInt(euler, m + 1, " -> ");
-            free(euler);
-            break;
-        }
-        case FAILURE: {
-            wprintf(L"Graf wejściowy nie zawiera cyklu.\n");
-            break;
-        }
-        case MEMORY_FAILURE: {
-            wprintf(L"Alokacja pamięci nie powiodła się.\n");
-            break;
-        }
-    } */
-
-    return;
+    fclose(testF);
 }
 
 int main(int argc, char** argv) {
