@@ -101,9 +101,11 @@ static char hamiltonianM(ParametersM* parameters) {
     parameters->numVisited++;
     
     int successor;
-    if(parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices + 3] != 0)successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices + 3];
+    int cycleCheck = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices + 3];
+    if(cycleCheck != OFFSET - 1)successor = cycleCheck;
     else successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices];
-    if(successor == OFFSET - 1)return false;
+
+    if(successor == OFFSET - 1)return false; //no successor
     
     int previous = OFFSET - 1;
     while(previous != successor) {

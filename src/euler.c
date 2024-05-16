@@ -55,3 +55,76 @@ status_t EulerianCircuitA(char** adjM, int n, int m, int start, int** placeholde
     }
     else return FAILURE;
 }
+
+
+
+
+typedef struct {
+    int** graphMatrix;
+    char** deletedMatrix;
+    int numberOfVertices;
+    int numberOfEdges;
+    int* stack;
+    int sp;
+    int current;
+} ParametersM;
+
+void DFS_EulerM(ParametersM* parameters) {
+    int current = parameters->current;
+    
+    if(parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices] == OFFSET - 1)goto end;
+
+    int successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices];
+    int previous = OFFSET - 1;
+    while(previous != successor) {
+        if(!parameters->deletedMatrix[current - OFFSET][successor - OFFSET] && !parameters->deletedMatrix[successor - OFFSET][current - OFFSET]) {
+            parameters->deletedMatrix[current - OFFSET][successor - OFFSET] = 1;
+            parameters->deletedMatrix[successor - OFFSET][current - OFFSET] = 1;
+            
+            parameters->current = successor;
+            
+            DFS_EulerM(parameters);
+        }
+
+        previous = successor;        
+        int cycleCheck = parameters->graphMatrix[current - OFFSET][successor - OFFSET] - 2 * parameters->numberOfVertices;
+        if(cycleCheck > 0)successor = cycleCheck;
+        else successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
+    }
+
+    end:
+        parameters->stack[parameters->sp] = current;
+        parameters->sp++;
+}
+
+status_t EulerianCircuitM(int** grM, int n, int m, int start, int** placeholder) {
+    char** deletedM = zeroMatrix(n, n);
+    if(deletedM == NULL)return MEMORY_FAILURE;
+
+    int* stack = calloc(m + 1, sizeof(int));
+    if(stack == NULL) {
+        free(deletedM);
+        return MEMORY_FAILURE;
+    }
+
+    ParametersM params = {
+        grM,
+        deletedM,
+        n,
+        m,
+        stack,
+        0,
+        start
+    };
+
+    DFS_EulerM(&params);
+
+    if(params.sp == m + 1) {
+        *placeholder = stack;
+        return SUCCESS;
+    }
+    else {
+        free(stack);
+        return FAILURE;
+    }
+}

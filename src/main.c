@@ -11,7 +11,7 @@
 
 #define nl() printf("\n") //Prints a new line
 
-void cycleAdjacencyMatrix(char** matrix, int n) {
+void cycleAdjacencyMatrix(char** matrix, int n, int m) {
     wprintf(L"Wybierz poszukiwany cykl.\n\n");
     wprintf(L"Dla Hamiltona, wpisz 'h'\n");
     wprintf(L"Dla Eulera, wpisz 'e'\n");
@@ -45,13 +45,33 @@ void cycleAdjacencyMatrix(char** matrix, int n) {
             break;
         }
         case 'e': {
-            printf("Chilowo nie ma.\n");
+            int* cycle = NULL;
+            status_t euler = EulerianCircuitA(matrix, n, m, 1, &cycle);
+
+            switch(euler) {
+                case MEMORY_FAILURE: {
+                    wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                    break;
+                }
+                case FAILURE: {
+                    wprintf(L"Graf wejściowy nie zawiera cyklu.\n");
+                    break;
+                }
+                case SUCCESS: {
+                    if(cycle != NULL) {
+                        printf("Cykl: ");
+                        printArrayInt(cycle, m + 1, " -> ");
+                        free(cycle);
+                    }
+                    break;
+                }
+            }
             break;
         }
     }
 }
 
-void cycleGraphMatrix(int** matrix, int n) {
+void cycleGraphMatrix(int** matrix, int n, int m) {
     wprintf(L"Wybierz poszukiwany cykl.\n\n");
     wprintf(L"Dla Hamiltona, wpisz 'h'\n");
     wprintf(L"Dla Eulera, wpisz 'e'\n");
@@ -85,7 +105,27 @@ void cycleGraphMatrix(int** matrix, int n) {
             break;
         }
         case 'e': {
-            printf("Chilowo nie ma.\n");
+            int* cycle = NULL;
+            status_t euler = EulerianCircuitM(matrix, n, m, 1, &cycle);
+
+            switch(euler) {
+                case FAILURE: {
+                    wprintf(L"Graf wejściowy nie zawiera cyklu.\n");
+                    break;
+                }
+                case SUCCESS: {
+                    if(cycle != NULL) {
+                        printf("Cykl: ");
+                        printArrayInt(cycle, m + 1, " -> ");
+                        free(cycle);
+                    }
+                    break;
+                }
+                case MEMORY_FAILURE: {
+                    wprintf(L"Alokacja pamięci nie powiodła się.\n");
+                    break;
+                }
+            }
             break;
         }
     }
@@ -133,7 +173,7 @@ void fromFile() {
                 }
                 printMatrix(M, vertices, vertices);
 
-                cycleAdjacencyMatrix(M, vertices);
+                cycleAdjacencyMatrix(M, vertices, edges);
 
                 deallocMatrix(M, vertices);
                 break;
@@ -151,6 +191,7 @@ void fromFile() {
                     M[x1 - OFFSET][x2 - OFFSET] = 1;
                     M[x2 - OFFSET][x1 - OFFSET] = -1;
                 }
+                printMatrix(M, vertices, vertices);
 
                 int** buf[4];
                 if(matrixToLists(M, vertices, buf) == MEMORY_FAILURE) {
@@ -172,7 +213,7 @@ void fromFile() {
 
                 printMatrixInt(grM, vertices, vertices + 4, 2, " ");
 
-                cycleGraphMatrix(grM, vertices);
+                cycleGraphMatrix(grM, vertices, edges);
 
                 deallocMatrixInt(grM, vertices);
 
@@ -201,24 +242,27 @@ void fromKeyboard() {
             int n;
             scanf("%d", &n);
 
+            wprintf(L"Podaj liczbę krawędzi: ");
+            int m;
+            scanf("%d", &m);
+
             char** M = zeroMatrix(n, n);
             if(M == NULL) {
                 wprintf(L"Alokacja pamięci nie powiodła się.\n");
                 break;
             }
-            wprintf(L"Aby zakończyć wczytywanie, jako krawędź należy podać '%d %d'\n", OFFSET-  1, OFFSET - 1);
-            int i = 0;
-            while(true) {
-                wprintf(L"Podaj #%d krawędź (x y): ", ++i);
+
+            for(int i = 0; i < m; i++) {
+                wprintf(L"Podaj #%d krawędź (x y): ", i + 1);
                 int x1, x2;
                 scanf("%d %d", &x1, &x2);
-                if(x1 == OFFSET -1 && x2 == OFFSET - 1)break;
                 M[x1 - OFFSET][x2 - OFFSET] = 1;
                 M[x2 - OFFSET][x1 - OFFSET] = 1;
             }
+
             printMatrix(M, n, n);
 
-            cycleAdjacencyMatrix(M, n);
+            cycleAdjacencyMatrix(M, n, m);
 
             deallocMatrix(M, n);
 
@@ -229,18 +273,20 @@ void fromKeyboard() {
             int n;
             scanf("%d", &n);
 
+            wprintf(L"Podaj liczbę krawędzi: ");
+            int m;
+            scanf("%d", &m);
+
             char** M = zeroMatrix(n, n);
             if(M == NULL) {
                 wprintf(L"Alokacja pamięci nie powiodła się.\n");
                 break;
             }
-            wprintf(L"Aby zakończyć wczytywanie, jako krawędź należy podać '%d %d'\n", OFFSET-  1, OFFSET - 1);
-            int i = 0;
-            while(true) {
-                wprintf(L"Podaj #%d łuk (x y): ", ++i);
+
+            for(int i = 0; i < m; i++) {
+                wprintf(L"Podaj #%d łuk (x y): ", i + 1);
                 int x1, x2;
                 scanf("%d %d", &x1, &x2);
-                if(x1 == OFFSET -1 && x2 == OFFSET - 1)break;
                 M[x1 - OFFSET][x2 - OFFSET] = 1;
                 M[x2 - OFFSET][x1 - OFFSET] = -1;
             }
@@ -265,7 +311,7 @@ void fromKeyboard() {
 
             printMatrixInt(grM, n, n + 4, 2, " ");
 
-            cycleGraphMatrix(grM, n);
+            cycleGraphMatrix(grM, n, m);
 
             deallocMatrixInt(grM, n);
 

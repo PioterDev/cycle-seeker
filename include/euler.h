@@ -16,5 +16,6 @@
  */
 status_t EulerianCircuitA(char** adjM, int n, int m, int start, int** placeholder);
 
+status_t EulerianCircuitM(int** grM, int n, int m, int start, int** placeholder);
 
 #endif
