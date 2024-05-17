@@ -17,6 +17,7 @@ typedef struct Params {
     int** grM;
     int n;
     int percentageFull;
+    FILE* debug;
 } Params;
 
 

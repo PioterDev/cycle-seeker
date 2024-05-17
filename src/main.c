@@ -31,7 +31,7 @@ void cycleAdjacencyMatrix(char** matrix, int n, int m) {
                 case SUCCESS: {
                     if(cycle != NULL) {
                         wprintf(L"Cykl: ");
-                        printArrayInt(cycle, n + 1, " -> ");
+                        printArrayInt(cycle, n + 1, " -> ", stdout);
                         free(cycle);
                     }
                     break;
@@ -63,7 +63,7 @@ void cycleAdjacencyMatrix(char** matrix, int n, int m) {
                 case SUCCESS: {
                     if(cycle != NULL) {
                         printf("Cykl: ");
-                        printArrayInt(cycle, m + 1, " -> ");
+                        printArrayInt(cycle, m + 1, " -> ", stdout);
                         free(cycle);
                     }
                     break;
@@ -86,12 +86,12 @@ void cycleGraphMatrix(int** matrix, int n, int m) {
     switch(option) {
         case 'h': {
             int* cycle = NULL;
-            status_t hamiltonianCycle = HamiltonianCycleM(matrix, n, 1, &cycle);
+            status_t hamiltonianCycle = HamiltonianCycleM(matrix, n, 1, &cycle, NULL);
             switch(hamiltonianCycle) {
                 case SUCCESS: {
                     if(cycle != NULL) {
                         wprintf(L"Cykl: ");
-                        printArrayInt(cycle, n + 1, " -> ");
+                        printArrayInt(cycle, n + 1, " -> ", stdout);
                         free(cycle);
                     }
                     break;
@@ -119,7 +119,7 @@ void cycleGraphMatrix(int** matrix, int n, int m) {
                 case SUCCESS: {
                     if(cycle != NULL) {
                         printf("Cykl: ");
-                        printArrayInt(cycle, m + 1, " -> ");
+                        printArrayInt(cycle, m + 1, " -> ", stdout);
                         free(cycle);
                     }
                     break;
@@ -174,7 +174,7 @@ void fromFile() {
                     M[x1 - OFFSET][x2 - OFFSET] = 1;
                     M[x2 - OFFSET][x1 - OFFSET] = 1;
                 }
-                printMatrix(M, vertices, vertices);
+                printMatrix(M, vertices, vertices, stdout);
 
                 cycleAdjacencyMatrix(M, vertices, edges);
 
@@ -214,7 +214,7 @@ void fromFile() {
                     break;
                 }
 
-                printMatrixInt(grM, vertices, vertices + 4, 2, " ");
+                printMatrixInt(grM, vertices, vertices + 4, 2, " ", stdout);
 
                 cycleGraphMatrix(grM, vertices, edges);
 
@@ -263,7 +263,7 @@ void fromKeyboard() {
                 M[x2 - OFFSET][x1 - OFFSET] = 1;
             }
 
-            printMatrix(M, n, n);
+            printMatrix(M, n, n, stdout);
 
             cycleAdjacencyMatrix(M, n, m);
 
@@ -312,7 +312,7 @@ void fromKeyboard() {
                 break;
             }
 
-            printMatrixInt(grM, n, n + 4, 2, " ");
+            printMatrixInt(grM, n, n + 4, 2, " ", stdout);
 
             cycleGraphMatrix(grM, n, m);
 
@@ -358,48 +358,51 @@ void mainPresenting() {
 
 void mainTesting() {
     FILE* testF = fopen("./tests.csv", "a");
-    int n = 20;
+    FILE* debugF = fopen("./debug.log", "w");
+    // FILE* debugF = stdout;
+    int n = 3100;
     while(n <= 10000) {
         printf("n: %d\n", n);
         for(int i = 0; i < 5; i++) {
             int* S = sequence(n);
             int* P = permute(S, n);
             free(S);
-            printArrayInt(P, n, " -> ");
-            printf("Iteracja #%d: ", i + 1);
+            fprintf(debugF, "Iteracja #%d: ", i + 1);
             for(int j = 0; j < 9; j++) {
-                printf("%d%% ", 10 * j + 10);
+                printArrayInt(P, n, " -> ", debugF);
+                fprintf(debugF, "%d%% ", 10 * j + 10);
                 char** M = zeroMatrix(n, n);
                 
                 genHamiltonianD(M, n, 10 * j + 10, P);
 
-                int** buf[4];
-                matrixToLists(M, n, buf);
+                /* int** buf[4];
+                matrixToLists(M, n, buf); */
 
-                int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
+                // int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
                 
-                deallocMatrixInt(buf[0], n);
+                /* deallocMatrixInt(buf[0], n);
                 deallocMatrixInt(buf[1], n);
                 deallocMatrixInt(buf[2], n);
-                deallocMatrixInt(buf[3], n);
+                deallocMatrixInt(buf[3], n); */
 
-                // printMatrixInt(grM, n, n + 4, 3, " ");
+                // printMatrix(M, n, n, debugF);
+                // printMatrixInt(grM, n, n + 4, 3, " ", debugF);
 
-                fprintf(testF, "H;%d;%d;%lld;%lld\n", n, 10 * j + 10, test('h', M, NULL, n), test('h', NULL, grM, n));
+                fprintf(testF, "H;%d;%d;%lld\n", n, 10 * j + 10, test('h', M, NULL, n, debugF)/* , test('h', NULL, grM, n, NULL) */);
 
                 deallocMatrix(M, n);
-                deallocMatrixInt(grM, n);
+                // deallocMatrixInt(grM, n);
             }
-            printf("\n");
+            fprintf(debugF, "\n");
             free(P);
         }
 
-        n += 10;
+        n += 100;
     }
     fclose(testF);
 }
 
-int main(int argc, char** argv) {
+int main() {
     system("chcp 65001 > nul");
     setlocale(LC_CTYPE, ".1250");
 

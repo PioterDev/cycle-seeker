@@ -24,7 +24,7 @@ status_t HamiltonianCycleA(char** adjM, int n, int start, int** placeholder);
  * @param placeholder variable for holding a pointer to found path
  * @return SUCCESS on finding a cycle, FAILURE on not, MEMORY_FAILURE on memory allocation error 
  */
-status_t HamiltonianCycleM(int** grM, int n, int start, int** placeholder);
+status_t HamiltonianCycleM(int** grM, int n, int start, int** placeholder, FILE* debug);
 
 
 #endif

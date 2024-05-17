@@ -7,7 +7,7 @@
  * @param arr array
  * @param n length of the array
  */
-void printArray(char* arr, int n);
+void printArray(char* arr, int n, FILE* stream);
 
 /**
  * @brief Prints an array. Each element is interpreted as an integer.
@@ -16,7 +16,7 @@ void printArray(char* arr, int n);
  * @param n length of the array
  * @param separator separator
  */
-void printArrayInt(int* arr, int n, char* separator);
+void printArrayInt(int* arr, int n, char* separator, FILE* stream);
 
 /**
  * @brief Prints a matrix of byte-size numbers. Each row is interpreted as an array of chars.
@@ -25,7 +25,7 @@ void printArrayInt(int* arr, int n, char* separator);
  * @param m vertical size
  * @param n horizontal size
  */
-void printMatrix(char** matrix, int m, int n);
+void printMatrix(char** matrix, int m, int n, FILE* stream);
 
 /**
  * @brief Prints a matrix of ints.
@@ -36,7 +36,7 @@ void printMatrix(char** matrix, int m, int n);
  * @param padding how many spaces should be added to align "0" with the biggest number
  * @param separator separator
  */
-void printMatrixInt(int** matrix, int rows, int cols, int padding, char* separator);
+void printMatrixInt(int** matrix, int rows, int cols, int padding, char* separator, FILE* stream);
 
 /**
  * @brief Prints a list (array of arrays that end with `OFFSET` - 1).

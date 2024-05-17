@@ -3,24 +3,24 @@
 
 #include "structs_unions_defines.h"
 
-void printArray(char* arr, int n) {
+void printArray(char* arr, int n, FILE* stream) {
     for(int i = 0; i < n; i++) {
-        if(arr[i] < 0)printf("%d ", arr[i]);
-        else printf(" %d ", arr[i]);
+        if(arr[i] < 0)fprintf(stream, "%d ", arr[i]);
+        else fprintf(stream, " %d ", arr[i]);
     }
-    printf("\n");
+    fprintf(stream, "\n");
 }
 
-void printArrayInt(int* arr, int n, char* separator) {
+void printArrayInt(int* arr, int n, char* separator, FILE* stream) {
     for(int i = 0; i < n - 1; i++) {
-        printf("%d%s", arr[i], separator);
+        fprintf(stream, "%d%s", arr[i], separator);
     }
-    printf("%d\n", arr[n - 1]);
+    fprintf(stream, "%d\n", arr[n - 1]);
 }
 
-void printMatrix(char** matrix, int h, int w) {
+void printMatrix(char** matrix, int h, int w, FILE* stream) {
     for(int i = 0; i < h; i++) {
-        printArray(matrix[i], w);
+        printArray(matrix[i], w, stream);
     }
 }
 
@@ -30,8 +30,9 @@ void printMatrix(char** matrix, int h, int w) {
     }
 } */
 
-void printMatrixInt(int** matrix, int h, int w, int padding, char* separator) {
+void printMatrixInt(int** matrix, int h, int w, int padding, char* separator, FILE* stream) {
     for (int i = 0; i < h; i++) {
+        fprintf(stream, "%d | ", i + 1);
         for (int j = 0; j < w; j++) {
             int numDigits = 1;
             int num = matrix[i][j];
@@ -39,11 +40,11 @@ void printMatrixInt(int** matrix, int h, int w, int padding, char* separator) {
                 num /= 10;
                 numDigits++;
             }
-            for (int k = 0; k < padding - numDigits; k++) printf(" ");
-            if (matrix[i][j] >= 0) printf(" ");
-            printf("%d%s", matrix[i][j], separator);
+            for (int k = 0; k < padding - numDigits; k++) fprintf(stream, " ");
+            if (matrix[i][j] >= 0) fprintf(stream, " ");
+            fprintf(stream, "%d%s", matrix[i][j], separator);
         }
-        printf("\n");
+        fprintf(stream, "\n");
     }
 }
 
@@ -203,25 +204,22 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
     if(successorList == NULL)goto failure;
 
     int** predecessorList = malloc(sizeof(int*) * n);
-    if(predecessorList == NULL) {
-        goto failure_s;
-    }
+    if(predecessorList == NULL)goto failure_s;
 
     int** noIncidenceList = malloc(sizeof(int*) * n);
-    if(noIncidenceList == NULL) {
-        goto failure_p;
-    }
+    if(noIncidenceList == NULL)goto failure_p;
 
     int** cycleList = malloc(sizeof(int*) * n);
-    if(cycleList == NULL) {
-        goto failure_n;
-    }
+    if(cycleList == NULL)goto failure_n;
 
     for(int i = 0; i < n; i++) {
         int counter[4] = {1, 1, 1, 1};
         for(int j = 0; j < n; j++) {
-            if(matrix[i][j] == matrix[j][i] && matrix[i][j] > 0)counter[3]++;
-            else if(matrix[i][j] > 0)counter[0]++; //successor
+            if(matrix[i][j] > 0 && matrix[j][i] > 0) {
+                counter[3]++;
+                continue;
+            }
+            if(matrix[i][j] > 0)counter[0]++; //successor
             else if(matrix[i][j] < 0)counter[1]++; //predecessor
             else counter[2]++; //no incidence
         }
@@ -287,7 +285,10 @@ status_t matrixToLists(char** matrix, int n, int*** buf) {
 
         int iterator[4] = {0};
         for(int j = 0; j < n; j++) {
-            if(matrix[i][j] > 0 && matrix[j][i] > 0)cycleList[i][iterator[3]++] = j + OFFSET;
+            if(matrix[i][j] > 0 && matrix[j][i] > 0) {
+                cycleList[i][iterator[3]++] = j + OFFSET;
+                continue;
+            }
             else if(matrix[i][j] > 0)successorList[i][iterator[0]++] = j + OFFSET; //successor
             else if(matrix[i][j] < 0)predecessorList[i][iterator[1]++] = j + OFFSET; //predecessor
             else noIncidenceList[i][iterator[2]++] = j + OFFSET; //no incidence

@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "structs_unions_defines.h"
+#include "utils.h"
 
 static inline void swap(int* x, int* y) {
     int tmp = *x;
@@ -66,7 +67,7 @@ status_t genHamiltonianD(char** matrix, int n, unsigned int percentFull, int* P)
 
     for(int i = 0; i < n; i++) {
         for(int j = 0; j < n; j++) {
-            if(edgeCount <= m && matrix[i][j] == 0) {
+            if(edgeCount <= m) {
                 if((unsigned int)rand() % 100 < percentFull) {
                     matrix[i][j] = 1;
                     matrix[j][i] = -1;

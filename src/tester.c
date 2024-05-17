@@ -9,7 +9,7 @@
 #include "structs_unions_defines.h"
 #include "utils.h"
 
-long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int vertices) {
+long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int vertices, FILE* debug) {
     LARGE_INTEGER start, end;
     long long result;
     switch(algorithm) {
@@ -37,7 +37,7 @@ long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int ve
             else if(graphMatrix != NULL) {
                 int* cycle = NULL;
                 QueryPerformanceCounter(&start);
-                status_t hamilton = HamiltonianCycleM(graphMatrix, vertices, 1, &cycle);
+                status_t hamilton = HamiltonianCycleM(graphMatrix, vertices, 1, &cycle, debug);
                 QueryPerformanceCounter(&end);
                 if(hamilton == MEMORY_FAILURE)result = -1;
                 else if(hamilton == FAILURE) {
@@ -59,8 +59,8 @@ DWORD WINAPI testThreaded(void* params) {
     fprintf(parameters->file, "H;%d;%d;%lld;%lld\n", 
         parameters->n, 
         parameters->percentageFull,
-        test('h', parameters->adjM, NULL, parameters->n),
-        test('h', NULL, parameters->grM, parameters->n)
+        test('h', parameters->adjM, NULL, parameters->n, parameters->debug),
+        test('h', NULL, parameters->grM, parameters->n, parameters->debug)
     );
     return 0;
 }
