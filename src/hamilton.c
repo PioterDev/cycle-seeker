@@ -26,10 +26,9 @@ char hamiltonianA(char** adjacencyMatrix, char* visitedTable, int* path, const i
                 return true;
             }
             if(visitedTable[j] == false) {
-                current = j + OFFSET;
                 path[sp] = j + OFFSET;
                 sp++;
-                if(hamiltonianA(adjacencyMatrix, visitedTable, path, numberOfVertices, start, current, numVisited, sp)) {
+                if(hamiltonianA(adjacencyMatrix, visitedTable, path, numberOfVertices, start, j + OFFSET, numVisited, sp)) {
                     return true;
                 }
                 sp--;
@@ -54,8 +53,6 @@ status_t HamiltonianCycleA(char** adjM, int n, int start, int** placeholder) {
 
     stack[0] = start;
     
-
-
     char cycle = hamiltonianA(adjM, visited, stack, n, start, start, 0, 1);
     free(visited);
     if(!cycle) {
@@ -85,57 +82,34 @@ typedef struct ParamsM {
     FILE* debug;
 } ParametersM;
 
-char hamiltonianM(ParametersM* parameters) {
-    int current = parameters->current;
-    parameters->visitedTable[current - OFFSET] = true;
-    parameters->numVisited++;
+char hamiltonianM(int** graphMatrix, char* visitedTable, int* path, const int numberOfVertices, const int start, int current, int numVisited, int sp, FILE* debug) {
+    visitedTable[current - OFFSET] = true;
+    numVisited++;
 
     int successor;
     /* int cycleCheck = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices + 3];
     if(cycleCheck != OFFSET - 1)successor = cycleCheck;
-    else */ successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices];
+    else */ successor = graphMatrix[current - OFFSET][numberOfVertices];
 
-    if(parameters->debug != NULL)fprintf(parameters->debug, "Current: %d, successor: %d\n", current, successor);
+    if(debug != NULL)fprintf(debug, "Current: %d, successor: %d\n", current, successor);
 
     if(successor == OFFSET - 1) {
-        parameters->visitedTable[current - OFFSET] = false;
-        parameters->numVisited--;
         return false; //no successor
     }
     
     int previous = OFFSET - 1;
 
-    /* for(int i = 0; i < parameters->numberOfVertices; i++) {
-        if(successor == parameters->start && parameters->numVisited == parameters->numberOfVertices) {
-            parameters->path[parameters->sp] = parameters->start;
-            return true;
-        }
-        if(!parameters->visitedTable[successor - OFFSET]) {
-            parameters->current = successor;
-            parameters->path[parameters->sp] = successor;
-            parameters->sp++;
-            if(parameters->debug != NULL)fprintf(parameters->debug, "Going to %d\n", successor);
-            if(hamiltonianM(parameters)) return true;
-            parameters->sp--;
-        }
-
-        previous = successor;
-        successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
-        if(parameters->debug != NULL)fprintf(parameters->debug, "Found %d\n", successor);
-        if(previous == successor)break;
-    } */
     while(previous != successor) {
-        if(successor == parameters->start && parameters->numVisited == parameters->numberOfVertices) {
-            parameters->path[parameters->sp] = parameters->start;
+        if(successor == start && numVisited == numberOfVertices) {
+            path[sp] = start;
             return true;
         }
-        if(!parameters->visitedTable[successor - OFFSET]) {
-            parameters->current = successor;
-            parameters->path[parameters->sp] = successor;
-            parameters->sp++;
-            if(parameters->debug != NULL)fprintf(parameters->debug, "Going to %d\n", successor);
-            if(hamiltonianM(parameters)) return true;
-            parameters->sp--;
+        if(!visitedTable[successor - OFFSET]) {
+            path[sp] = successor;
+            sp++;
+            if(debug != NULL)fprintf(debug, "Going to %d\n", successor);
+            if(hamiltonianM(graphMatrix, visitedTable, path, numberOfVertices, start, successor, numVisited, sp, debug)) return true;
+            sp--;
         }
 
         previous = successor;
@@ -143,14 +117,13 @@ char hamiltonianM(ParametersM* parameters) {
         if(cycleCheck > 0) {
             successor = cycleCheck;
         }
-        else  */successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
-        if(parameters->debug != NULL)fprintf(parameters->debug, "Found %d\n", successor);
+        else  */successor = graphMatrix[current - OFFSET][successor - OFFSET];
+        if(debug != NULL)fprintf(debug, "Found %d\n", successor);
     }
 
-    parameters->visitedTable[current - OFFSET] = false;
-    parameters->numVisited--;
-    parameters->current = current;
-    if(parameters->debug != NULL)fprintf(parameters->debug, "Going back to %d\n", current);
+    visitedTable[current - OFFSET] = false;
+    numVisited--;
+    if(debug != NULL)fprintf(debug, "Going back to %d\n", current);
     return false;
 }
 
@@ -166,7 +139,7 @@ status_t HamiltonianCycleM(int** grM, int n, int start, int** placeholder, FILE*
 
     stack[0] = start;
     
-    ParametersM params = {
+    /* ParametersM params = {
         grM,
         visited,
         stack,
@@ -176,9 +149,9 @@ status_t HamiltonianCycleM(int** grM, int n, int start, int** placeholder, FILE*
         0,
         1,
         debug
-    };
+    }; */
 
-    char cycle = hamiltonianM(&params);
+    char cycle = hamiltonianM(grM, visited, stack, n, start, start, 0, 1, debug);
     free(visited);
     if(!cycle) {
         free(stack);

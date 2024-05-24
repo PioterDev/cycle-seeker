@@ -357,52 +357,157 @@ void mainPresenting() {
 }
 
 void mainTesting() {
-    FILE* testF = fopen("./tests.csv", "a");
-    FILE* debugF = fopen("./debug.log", "w");
+    FILE* testF = fopen("./neu.csv", "a");
+    FILE* debugF = stdout;
     // FILE* debugF = stdout;
-    int n = 3100;
-    while(n <= 10000) {
+    int n = 10;
+    while(n <= 750) {
         printf("n: %d\n", n);
-        for(int i = 0; i < 5; i++) {
-            int* S = sequence(n);
+        for(int i = 0; i < 10; i++) {
+            /* int* S = sequence(n);
             int* P = permute(S, n);
-            free(S);
+            free(S); */
             fprintf(debugF, "Iteracja #%d: ", i + 1);
             for(int j = 0; j < 9; j++) {
-                printArrayInt(P, n, " -> ", debugF);
+                // printArrayInt(P, n, " -> ", debugF);
                 fprintf(debugF, "%d%% ", 10 * j + 10);
                 char** M = zeroMatrix(n, n);
-                
-                genHamiltonianD(M, n, 10 * j + 10, P);
+                int m;
+                genNonEulerianU(M, n, 10 * j + 10, &m);
+                // printMatrix(M, n, n, stdout);
 
-                /* int** buf[4];
-                matrixToLists(M, n, buf); */
+                // int** buf[4];
+                // matrixToLists(M, n, buf);
 
                 // int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
-                
-                /* deallocMatrixInt(buf[0], n);
-                deallocMatrixInt(buf[1], n);
-                deallocMatrixInt(buf[2], n);
-                deallocMatrixInt(buf[3], n); */
+                // printMatrixInt(grM, n, n + 4, 3, " ", stdout);
 
-                // printMatrix(M, n, n, debugF);
-                // printMatrixInt(grM, n, n + 4, 3, " ", debugF);
+                // deallocMatrixInt(buf[0], n);
+                // deallocMatrixInt(buf[1], n);
+                // deallocMatrixInt(buf[2], n);
+                // deallocMatrixInt(buf[3], n);
 
-                fprintf(testF, "H;%d;%d;%lld\n", n, 10 * j + 10, test('h', M, NULL, n, debugF)/* , test('h', NULL, grM, n, NULL) */);
+                fprintf(testF, "E;U;%d;%d;%lld\n", n, 10 * j + 10, test('e', M, NULL, n, m, NULL)/* , test('h', NULL, grM, n, NULL) */);
 
                 deallocMatrix(M, n);
                 // deallocMatrixInt(grM, n);
             }
             fprintf(debugF, "\n");
-            free(P);
+            // free(P);
         }
 
-        n += 100;
+        n += 10;
     }
     fclose(testF);
 }
 
+void testing() {
+    for(int i = 0; i < 100; i++) {
+
+    // FILE* debug = fopen("./debug.log", "w");
+    int n = 1000;
+    int* S = sequence(n);
+    int* P = permute(S, n);
+    free(S);
+
+    // printArrayInt(P, n, " -> ", stdout);
+
+    char** M = zeroMatrix(n, n);
+
+    genHamiltonianU(M, n, 50, P);
+    // int** buf[4];
+    // matrixToLists(M, n, buf);
+
+    // int** grM = graphMatrixFrom(n, buf[0], buf[1], buf[2], buf[3]);
+
+    // deallocMatrixInt(buf[0], n);
+    // deallocMatrixInt(buf[1], n);
+    // deallocMatrixInt(buf[2], n);
+    // deallocMatrixInt(buf[3], n);
+
+    // printMatrixInt(grM, n, n + 4, 3, " ", stdout);
+
+    int* cycle = NULL;
+    LARGE_INTEGER start, end;
+    /* QueryPerformanceCounter(&start);
+    status_t h = HamiltonianCycleM(grM, n, 1, &cycle, NULL);
+    QueryPerformanceCounter(&end);
+    printf("%lld\n", end.QuadPart - start.QuadPart);
+    switch(h) {
+        case MEMORY_FAILURE: break;
+        case FAILURE:
+            printf("WTF?!\n");
+            break;
+        case SUCCESS: {
+            printArrayInt(cycle, n + 1, " -> ", stdout);
+            break;
+        }
+    } */
+
+    QueryPerformanceCounter(&start);
+    status_t h = HamiltonianCycleA(M, n, 1, &cycle);
+    QueryPerformanceCounter(&end);
+    printf("%lld\n", end.QuadPart - start.QuadPart);
+    switch(h) {
+        case MEMORY_FAILURE: break;
+        case FAILURE:
+            printf("WTF?!\n");
+            break;
+        case SUCCESS: {
+            printf("YAY!!!\n");
+            // printArrayInt(cycle, n + 1, " -> ", stdout);
+            break;
+        }
+    }
+
+    deallocMatrix(M, n);
+    // deallocMatrixInt(grM, n);
+    free(P);
+    }
+}
+
+void testing2() {
+    int n = 10;
+
+    char** M = zeroMatrix(n, n);
+    int m;
+    status_t e = genEulerianD(M, n, 90, &m);
+    switch(e) {
+        case FAILURE:
+        case MEMORY_FAILURE: return;
+        case SUCCESS: break;
+    }
+
+    printMatrix(M, n, n, stdout);
+    for(int i = 0; i < n; i++) {
+        int d = 0;
+        int d1 = 0;
+        for(int j = 0; j < n; j++) {
+            if(M[i][j] == 1)d++;
+            else if(M[i][j] == -1)d1++;
+        }
+        printf("%d %d\n", d, d1);
+    }
+
+    int* circuit = NULL;
+    status_t eulerian = EulerianCircuitA(M, n, m, 1, &circuit);
+    switch(eulerian) {
+        case MEMORY_FAILURE: break;
+        case FAILURE:
+            printf("WTF?!\n");
+            break;
+        case SUCCESS: {
+            printf("YAY!!!\n");
+            printArrayInt(circuit, m + 1, " -> ", stdout);
+            break;
+        }
+    }
+
+    deallocMatrix(M, n);
+}
+
 int main() {
+    srand(time(NULL));
     system("chcp 65001 > nul");
     setlocale(LC_CTYPE, ".1250");
 
@@ -415,6 +520,8 @@ int main() {
             mainPresenting();
             break;
         case 't':
+            // testing();
+            // testing2();
             mainTesting();
             break;
     }

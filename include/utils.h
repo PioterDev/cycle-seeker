@@ -1,6 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+
+/**
+ * @brief Reverses the array.
+ * 
+ * @param arr array
+ * @param n number of elements
+ */
+void reverseArrayInt(int* arr, int n);
 /**
  * @brief Prints an array. Each element is interpreted as a char.
  * 

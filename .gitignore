@@ -1,3 +1,9 @@
+.gitignore
 build/
 main.exe
 *.txt
+tests/
+*.csv
+t
+t1
+t2

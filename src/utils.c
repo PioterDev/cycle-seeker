@@ -3,6 +3,19 @@
 
 #include "structs_unions_defines.h"
 
+static inline void swap(int* x, int* y) {
+    int tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
+void reverseArrayInt(int* arr, int n) {
+    for(int i = 0; i < n / 2; i++) {
+        swap(&arr[i], &arr[n - i - 1]);
+    }
+    return;
+}
+
 void printArray(char* arr, int n, FILE* stream) {
     for(int i = 0; i < n; i++) {
         if(arr[i] < 0)fprintf(stream, "%d ", arr[i]);
@@ -142,6 +155,32 @@ int** matrixToSuccessorList(char** matrix, int n) {
     }
     return successorList;
 }
+
+/* status_t sortSuccessorListByOutDegrees(int** successorList, int n) {
+    int* outDegrees = calloc(n, sizeof(int));
+    if(outDegrees == NULL)return MEMORY_FAILURE;
+
+    for(int i = 0; i < n; i++) {
+        int j = 0;
+        while(successorList[i][j] != 0)outDegrees[i]++;
+    }
+
+    for(int i = 0; i < n; i++) {
+        Pair* pairs = malloc(sizeof(Pair) * n);
+        if(pairs == NULL) {
+            free(outDegrees);
+            return MEMORY_FAILURE;
+        }
+
+        for(int j = 0; j < n; j++) {
+            pairs[j].key = successorList[i][j];
+            pairs[j].value = outDegrees[j];
+        }
+
+
+        free(pairs);
+    }
+} */
 
 int** matrixToPredecessorList(char** matrix, int n) {
     int** predecessorList = malloc(sizeof(int*) * n);

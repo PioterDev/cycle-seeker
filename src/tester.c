@@ -9,16 +9,46 @@
 #include "structs_unions_defines.h"
 #include "utils.h"
 
-long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int vertices, FILE* debug) {
+long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int vertices, int edges, FILE* debug) {
     LARGE_INTEGER start, end;
     long long result;
     switch(algorithm) {
         case 'e': { //euler
             if(adjacencyMatrix != NULL) {
-
+                int* circuit = NULL;
+                QueryPerformanceCounter(&start);
+                status_t eulerian = EulerianCircuitA(adjacencyMatrix, vertices, edges, 1, &circuit);
+                QueryPerformanceCounter(&end);
+                switch(eulerian) {
+                    case MEMORY_FAILURE:
+                        result = -1;
+                        break;
+                    case FAILURE:
+                        result = end.QuadPart - start.QuadPart;
+                        break;
+                    case SUCCESS:
+                        if(circuit != NULL)free(circuit);
+                        result = -2;
+                        break;
+                }
             }
             else if(graphMatrix != NULL) {
-                
+                int* circuit = NULL;
+                QueryPerformanceCounter(&start);
+                status_t eulerian = EulerianCircuitM(graphMatrix, vertices, edges, 1, &circuit);
+                QueryPerformanceCounter(&end);
+                switch(eulerian) {
+                    case MEMORY_FAILURE:
+                        result = -1;
+                        break;
+                    case FAILURE:
+                        result = end.QuadPart - start.QuadPart;
+                        break;
+                    case SUCCESS:
+                        if(circuit != NULL)free(circuit);
+                        result = -2;
+                        break;
+                }
             }
             break;
         }
@@ -28,10 +58,17 @@ long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int ve
                 QueryPerformanceCounter(&start);
                 status_t hamilton = HamiltonianCycleA(adjacencyMatrix, vertices, 1, &cycle);
                 QueryPerformanceCounter(&end);
-                if(hamilton == MEMORY_FAILURE)result = -1;
-                else {
-                    if(cycle != NULL)free(cycle);
-                    result = end.QuadPart - start.QuadPart;
+                switch(hamilton) {
+                    case MEMORY_FAILURE:
+                        result = -1;
+                        break;
+                    case FAILURE:
+                        result = -2;
+                        break;
+                    case SUCCESS:
+                        if(cycle != NULL)free(cycle);
+                        result = end.QuadPart - start.QuadPart;
+                        break;
                 }
             }
             else if(graphMatrix != NULL) {
@@ -39,28 +76,21 @@ long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int ve
                 QueryPerformanceCounter(&start);
                 status_t hamilton = HamiltonianCycleM(graphMatrix, vertices, 1, &cycle, debug);
                 QueryPerformanceCounter(&end);
-                if(hamilton == MEMORY_FAILURE)result = -1;
-                else if(hamilton == FAILURE) {
-                    result = -2;
-                }
-                else {
-                    if(cycle != NULL)free(cycle);
-                    result = end.QuadPart - start.QuadPart;
+                switch(hamilton) {
+                    case MEMORY_FAILURE:
+                        result = -1;
+                        break;
+                    case FAILURE:
+                        result = -2;
+                        break;
+                    case SUCCESS:
+                        if(cycle != NULL)free(cycle);
+                        result = end.QuadPart - start.QuadPart;
+                        break;
                 }
             }
             break;
         }
     }
     return result;
-}
-
-DWORD WINAPI testThreaded(void* params) {
-    Params* parameters = params;
-    fprintf(parameters->file, "H;%d;%d;%lld;%lld\n", 
-        parameters->n, 
-        parameters->percentageFull,
-        test('h', parameters->adjM, NULL, parameters->n, parameters->debug),
-        test('h', NULL, parameters->grM, parameters->n, parameters->debug)
-    );
-    return 0;
 }

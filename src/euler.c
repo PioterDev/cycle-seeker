@@ -3,128 +3,101 @@
 
 #include "structs_unions_defines.h"
 #include "utils.h"
-typedef struct ParamsA {
-    char** adjacencyMatrix;
-    int numberOfVertices;
-    int numberOfEdges;
-    int* stack;
-    int sp;
+
+typedef struct ParametersA {
     int current;
+    char** adjacencyMatrix;
+    int numberOFVertices;
+    int* path;
+    int sp;
 } ParametersA;
 
-void DFS_Euler(ParametersA* parameters) {
+void DFS_EulerA(ParametersA* parameters) {
     int current = parameters->current;
-    printf("%d\n", current);
-    for(int j = 0; j < parameters->numberOfVertices; j++) {
+    for(int j = 0; j < parameters->numberOFVertices; j++) {
         if(parameters->adjacencyMatrix[current - OFFSET][j] == 1) {
-            parameters->adjacencyMatrix[current - OFFSET][j] = 0;
-            parameters->adjacencyMatrix[j][current - OFFSET] = 0;
+            parameters->adjacencyMatrix[current - OFFSET][j] = -1;
+            parameters->adjacencyMatrix[j][current - OFFSET] = -1;
+            // printf("Going to %d\n", j + OFFSET);
             parameters->current = j + OFFSET;
-            DFS_Euler(parameters);
+            DFS_EulerA(parameters);
         }
     }
-    parameters->stack[parameters->sp] = current;
+    parameters->path[parameters->sp] = current;
     parameters->sp++;
+    // printf("%d\n", *sp);
 }
 
 status_t EulerianCircuitA(char** adjM, int n, int m, int start, int** placeholder) {
-    char** adjMcopy = copyMatrix(adjM, n, n);
-    if(adjMcopy == NULL)return MEMORY_FAILURE;
-
-    int* stack = malloc(sizeof(int) * m);
-    if(stack == NULL) {
-        deallocMatrix(adjMcopy, n);
-        return MEMORY_FAILURE;
-    }
+    int* path = malloc(sizeof(int) * (m + 1));
+    if(path == NULL)return MEMORY_FAILURE;
+    // printf("%d\n", m);
 
     ParametersA params = {
-        adjMcopy,
+        start,
+        adjM,
         n,
-        m,
-        stack,
-        0,
-        start
+        path,
+        0
     };
+    DFS_EulerA(&params);
 
-    DFS_Euler(&params);
-
-    deallocMatrix(adjMcopy, n);
-    if(params.sp == m + 1) {
-        *placeholder = stack;
-        return SUCCESS;
-    }
-    else return FAILURE;
-}
-
-
-
-
-typedef struct {
-    int** graphMatrix;
-    char** deletedMatrix;
-    int numberOfVertices;
-    int numberOfEdges;
-    int* stack;
-    int sp;
-    int current;
-} ParametersM;
-
-void DFS_EulerM(ParametersM* parameters) {
-    int current = parameters->current;
-    
-    if(parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices] == OFFSET - 1)goto end;
-
-    int successor = parameters->graphMatrix[current - OFFSET][parameters->numberOfVertices];
-    int previous = OFFSET - 1;
-    while(previous != successor) {
-        if(!parameters->deletedMatrix[current - OFFSET][successor - OFFSET] && !parameters->deletedMatrix[successor - OFFSET][current - OFFSET]) {
-            parameters->deletedMatrix[current - OFFSET][successor - OFFSET] = 1;
-            parameters->deletedMatrix[successor - OFFSET][current - OFFSET] = 1;
-            
-            parameters->current = successor;
-            
-            DFS_EulerM(parameters);
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < n; j++) {
+            if(adjM[i][j] == -1)adjM[i][j] = 1;
         }
-
-        previous = successor;        
-        int cycleCheck = parameters->graphMatrix[current - OFFSET][successor - OFFSET] - 2 * parameters->numberOfVertices;
-        if(cycleCheck > 0)successor = cycleCheck;
-        else successor = parameters->graphMatrix[current - OFFSET][successor - OFFSET];
     }
-
-    end:
-        parameters->stack[parameters->sp] = current;
-        parameters->sp++;
-}
-
-status_t EulerianCircuitM(int** grM, int n, int m, int start, int** placeholder) {
-    char** deletedM = zeroMatrix(n, n);
-    if(deletedM == NULL)return MEMORY_FAILURE;
-
-    int* stack = calloc(m + 1, sizeof(int));
-    if(stack == NULL) {
-        free(deletedM);
-        return MEMORY_FAILURE;
-    }
-
-    ParametersM params = {
-        grM,
-        deletedM,
-        n,
-        m,
-        stack,
-        0,
-        start
-    };
-
-    DFS_EulerM(&params);
-
     if(params.sp == m + 1) {
-        *placeholder = stack;
+        path[m] = start;
+        *placeholder = path;
         return SUCCESS;
     }
     else {
-        free(stack);
+        free(path);
+        return FAILURE;
+    }
+}
+
+
+
+void DFS_EulerM(int v, int** grM, int n, int* path, int* sp, char** workingCopy) {
+    int successor = grM[v - OFFSET][n];
+    int previous = OFFSET - 1;
+    while(previous != successor) {
+        if(workingCopy[v - OFFSET][successor - OFFSET] == 0) {
+            workingCopy[v - OFFSET][successor - OFFSET] = 1;
+            workingCopy[successor - OFFSET][v - OFFSET] = 1;
+            DFS_EulerM(successor, grM, n, path, sp, workingCopy);
+        }
+        previous = successor;
+        successor = grM[v - OFFSET][successor - OFFSET];
+    }
+    path[*sp] = v;
+    (*sp)++;
+}
+
+status_t EulerianCircuitM(int** grM, int n, int m, int start, int** placeholder) {
+    int* path = malloc(sizeof(int) * (m + 1));
+    if(path == NULL)return MEMORY_FAILURE;
+
+    char** addM = zeroMatrix(n, n);
+    if(addM == NULL) {
+        free(path);
+        return MEMORY_FAILURE;
+    }
+
+    int sp = 0;
+
+    DFS_EulerM(start, grM, n, path, &sp, addM);
+    free(addM);
+    if(sp == m + 1) {
+        path[m] = start;
+        reverseArrayInt(path, m + 1);
+        *placeholder = path;
+        return SUCCESS;
+    }
+    else {
+        free(path);
         return FAILURE;
     }
 }

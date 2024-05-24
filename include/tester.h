@@ -12,9 +12,7 @@
  * @param vertices number of vertices
  * @return time taken to sort with accuracy of 1/QueryPerformanceFrequency(&freq)
  */
-long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int vertices, FILE* debug);
-
-DWORD WINAPI testThreaded(void* params);
+long long test(char algorithm, char** adjacencyMatrix, int** graphMatrix, int vertices, int edges, FILE* debug);
 
 
 #endif

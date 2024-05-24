@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -Iinclude
+CFLAGS = -Wall -Wextra -Wl,--stack,16777216 -std=c99 -Iinclude
 
 SRCDIR = src
 INCDIR = include
